@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ManhTools Marketplace</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --primary: #38bdf8;
+      --primary-dark: #0ea5e9;
+      --accent: #7c3aed;
+      --card: rgba(30, 41, 59, 0.95);
+      --border: rgba(148, 163, 184, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, Arial, sans-serif;
+      background: radial-gradient(circle at top, rgba(56, 189, 248, 0.12), transparent 30%),
+        linear-gradient(180deg, #0f172a 0%, #020617 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(15, 23, 42, 0.9);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    }
+
+    .nav-wrapper {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 18px 24px;
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .logo {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: 0.04em;
+      text-decoration: none;
+      margin-right: auto;
+    }
+
+    nav {
+      margin-left: auto;
+    }
+
+    nav a {
+      color: var(--muted);
+      text-decoration: none;
+      margin-left: 24px;
+      transition: color 0.2s ease;
+    }
+
+    nav a:hover {
+      color: var(--text);
+    }
+
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-content {
+      background: var(--panel);
+      margin: 8% auto;
+      padding: 32px;
+      border-radius: 24px;
+      width: 90%;
+      max-width: 420px;
+      border: 1px solid var(--border);
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.4);
+    }
+
+    .modal-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 14px 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-radius: 14px;
+      color: var(--muted);
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active {
+      color: var(--primary);
+      background: rgba(56, 189, 248, 0.1);
+      border-color: rgba(56, 189, 248, 0.3);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.85);
+      color: var(--text);
+      font-size: 1rem;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .modal-btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 14px;
+      border: none;
+      background: var(--primary);
+      color: #020617;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    .modal-btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .close {
+      color: var(--muted);
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close:hover {
+      color: var(--text);
+    }
+
+    .hero {
+      text-align: center;
+      padding: 96px 24px 56px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(3rem, 6vw, 5rem);
+      line-height: 1.02;
+      color: var(--primary);
+    }
+
+    .hero p {
+      max-width: 720px;
+      margin: 24px auto 0;
+      font-size: 1.15rem;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    .hero .actions {
+      margin-top: 36px;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .project-background {
+      max-width: 900px;
+      margin: 32px auto 0;
+      padding: 28px;
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+      border: 1px solid rgba(56, 189, 248, 0.15);
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18);
+    }
+
+    .project-background h2 {
+      margin: 0 0 14px;
+      color: #f8fafc;
+      font-size: 1.85rem;
+    }
+
+    .project-background p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.85;
+      font-size: 1rem;
+    }
+
+    .btn,
+    .btn-secondary {
+      padding: 14px 28px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #020617;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+    }
+
+    .btn:hover,
+    .btn-secondary:hover {
+      transform: translateY(-2px);
+    }
+
+    .section {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 56px 24px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+      color: var(--text);
+    }
+
+    .section-title span {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--primary);
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      padding: 24px;
+      border-radius: 24px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
+    }
+
+    .card h3 {
+      margin: 0 0 14px;
+      color: #f8fafc;
+    }
+
+    .card p {
+      color: var(--muted);
+      line-height: 1.7;
+      margin: 0 0 20px;
+    }
+
+    .card .price {
+      font-size: 1.25rem;
+      color: var(--primary);
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .card button {
+      width: 100%;
+      padding: 12px 0;
+      border-radius: 16px;
+      border: none;
+      background: var(--primary);
+      color: #020617;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .card button:hover {
+      background: var(--primary-dark);
+    }
+
+    .highlight {
+      color: var(--primary);
+    }
+
+    .upload-panel {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+      padding: 32px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 28px;
+    }
+
+    .upload-panel h2 {
+      margin-top: 0;
+    }
+
+    .upload-panel p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+      margin-top: 24px;
+    }
+
+    .feature {
+      padding: 18px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+    }
+
+    .feature h4 {
+      margin: 0 0 10px;
+      color: #f8fafc;
+    }
+
+    .feature p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    footer {
+      padding: 24px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    @media (min-width: 768px) {
+      .upload-panel {
+        grid-template-columns: 1fr 1fr;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="nav-wrapper">
+      <a class="logo" href="#">Manhtools Industry</a>
+      <nav>
+        <a href="#tools">Tools</a>
+        <a href="#features">Features</a>
+        <a href="#" id="login-btn">Login</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>Manhtools Industry</h1>
+      <p>Upload your own tools, showcase product details, and let customers buy directly from your custom storefront.</p>
+      <div class="actions">
+        <button class="btn" onclick="document.getElementById('tools').scrollIntoView({ behavior: 'smooth' })">Browse Tools</button>
+      </div>
+      <div class="project-background">
+        <h2>Construction Project Background</h2>
+        <p>Our platform is designed for structural engineering and construction software. It helps you present tools built for project planning, load calculation, detailing, and site coordination. Each listing can explain the construction context, design challenges, and how the tool supports project delivery.</p>
+      </div>
+    </section>
+
+    <section id="tools" class="section">
+      <div class="section-title">
+        <span></span>
+        <div>
+          <p style="margin:0; font-size:0.95rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted)">Featured Products</p>
+          <h2 style="margin: 8px 0 0; font-size:2rem;">Marketplace tools ready to sell</h2>
+        </div>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <h3>Auto Load Builder</h3>
+          <p>A powerful load calculator for beam and column design. Perfect for rapid structural checkouts and code-based loads.</p>
+          <div class="price">$49</div>
+          <button>Buy Now</button>
+        </div>
+        <div class="card">
+          <h3>Concrete Detail Kit</h3>
+          <p>Automate slab, wall, and footing detailing with ready-to-use export templates and engineering reports.</p>
+          <div class="price">$79</div>
+          <button>Buy Now</button>
+        </div>
+        <div class="card">
+          <h3>Steel Section Finder</h3>
+          <p>Instantly compare material options, weights, and section properties for steel design and fabrication.</p>
+          <div class="price">$29</div>
+          <button>Buy Now</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="section">
+      <div class="section-title">
+        <span></span>
+        <div>
+          <p style="margin:0; font-size:0.95rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted)">Why this site</p>
+          <h2 style="margin: 8px 0 0; font-size:2rem;">Build trust and close sales faster</h2>
+        </div>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <h3>Product showcase</h3>
+          <p>Highlight features, pricing, and download benefits so visitors can buy confidently.</p>
+        </div>
+        <div class="card">
+          <h3>Conversion-ready layout</h3>
+          <p>Clean visuals, strong CTAs, and focused content make it easy for buyers to choose your tools.</p>
+        </div>
+        <div class="card">
+          <h3>Easy updates</h3>
+          <p>Add new tools, update descriptions, and refresh pricing without rebuilding the page.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>ManhTools Marketplace · Sell tools, host files, and share your engineering solutions online.</p>
+  </footer>
+
+  <div id="auth-modal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <div class="modal-tabs">
+        <button class="tab-btn active" type="button" onclick="openTab('login')">Login</button>
+        <button class="tab-btn" type="button" onclick="openTab('register')">Register</button>
+      </div>
+      <div id="login" class="tab-content active">
+        <form id="login-form">
+          <div class="form-group">
+            <label for="login-email">Email</label>
+            <input type="email" id="login-email" required>
+          </div>
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" required>
+          </div>
+          <button type="submit" class="modal-btn">Login</button>
+        </form>
+      </div>
+      <div id="register" class="tab-content">
+        <form id="register-form">
+          <div class="form-group">
+            <label for="register-name">Full Name</label>
+            <input type="text" id="register-name" required>
+          </div>
+          <div class="form-group">
+            <label for="register-email">Email</label>
+            <input type="email" id="register-email" required>
+          </div>
+          <div class="form-group">
+            <label for="register-password">Password</label>
+            <input type="password" id="register-password" required>
+          </div>
+          <div class="form-group">
+            <label for="register-confirm">Confirm Password</label>
+            <input type="password" id="register-confirm" required>
+          </div>
+          <button type="submit" class="modal-btn">Register</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const modal = document.getElementById('auth-modal');
+    const loginBtn = document.getElementById('login-btn');
+    const closeBtn = document.querySelector('.close');
+
+    loginBtn.onclick = function() {
+      modal.style.display = 'block';
+    }
+
+    closeBtn.onclick = function() {
+      modal.style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+      if (event.target === modal) {
+        modal.style.display = 'none';
+      }
+    }
+
+    function openTab(tabName) {
+      const tabs = document.querySelectorAll('.tab-content');
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      tabs.forEach(tab => tab.classList.remove('active'));
+      tabBtns.forEach(btn => btn.classList.remove('active'));
+      document.getElementById(tabName).classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    document.getElementById('login-form').onsubmit = function(e) {
+      e.preventDefault();
+      alert('Login submitted: ' + document.getElementById('login-email').value);
+    }
+
+    document.getElementById('register-form').onsubmit = function(e) {
+      e.preventDefault();
+      const password = document.getElementById('register-password').value;
+      const confirm = document.getElementById('register-confirm').value;
+      if (password !== confirm) {
+        alert('Passwords do not match.');
+        return;
+      }
+      alert('Registration submitted: ' + document.getElementById('register-email').value);
+    }
+  </script>
+</body>
+
+</html>
