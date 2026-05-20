@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BuildTools — Tool Xây Dựng Chuyên Nghiệp</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #f5f0e8;
+  --ink: #1a1208;
+  --yellow: #f7d24b;
+  --orange: #f46f2a;
+  --blue: #2a5df4;
+  --green: #3ecf7a;
+  --pink: #f42a8b;
+  --red: #e8372a;
+  --card: #fff;
+  --radius: 12px;
+  --border: 2.5px solid var(--ink);
+  --shadow: 5px 5px 0px var(--ink);
+  --shadow-lg: 8px 8px 0px var(--ink);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Space Mono', monospace;
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* CURSOR */
+.cursor {
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--orange);
+  position: fixed; top: 0; left: 0;
+  pointer-events: none; z-index: 9999;
+  mix-blend-mode: multiply;
+  transition: width 0.2s, height 0.2s, background 0.2s;
+}
+.cursor.big { width: 50px; height: 50px; background: var(--yellow); }
+
+/* NOISE */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 100; opacity: 0.5;
+}
+
+/* NAV */
+nav {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1.2rem 2.5rem;
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 200; background: var(--bg);
+  border-bottom: var(--border);
+}
+.nav-logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800; font-size: 1.2rem;
+  background: var(--yellow); padding: 0.2rem 0.8rem;
+  border: var(--border); box-shadow: var(--shadow);
+  text-decoration: none; color: var(--ink);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.nav-logo:hover { transform: translate(-3px,-3px); box-shadow: var(--shadow-lg); }
+.nav-right { display: flex; gap: 1rem; align-items: center; }
+.nav-tab {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  padding: 0.4rem 1rem;
+  border: var(--border); background: var(--card);
+  box-shadow: 3px 3px 0 var(--ink);
+  cursor: none; color: var(--ink);
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.nav-tab:hover { transform: translate(-2px,-2px); box-shadow: var(--shadow); }
+.nav-tab.active { background: var(--ink); color: var(--yellow); }
+.cart-tab {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  padding: 0.4rem 1rem;
+  border: var(--border); background: var(--orange); color: #fff;
+  box-shadow: var(--shadow);
+  cursor: none; position: relative;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.cart-tab:hover { transform: translate(-3px,-3px); box-shadow: var(--shadow-lg); }
+.cart-badge {
+  position: absolute; top: -8px; right: -8px;
+  background: var(--pink); color: #fff;
+  font-size: 0.6rem; font-weight: 700;
+  width: 18px; height: 18px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--ink);
+}
+
+/* PAGES */
+.page { display: none; padding-top: 70px; }
+.page.active { display: block; }
+
+/* ===== HERO ===== */
+.hero {
+  min-height: 88vh;
+  display: grid; grid-template-columns: 1fr 1fr;
+  align-items: center;
+  padding: 5rem 2.5rem 4rem; gap: 3rem;
+  position: relative;
+}
+.hero-eyebrow {
+  display: inline-block;
+  font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase;
+  background: var(--green); color: var(--ink);
+  border: var(--border); padding: 0.25rem 0.75rem;
+  margin-bottom: 1.2rem;
+  animation: slideIn 0.6s ease both;
+}
+.hero-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(2.8rem, 6vw, 5rem);
+  font-weight: 800; line-height: 0.95;
+  margin-bottom: 1.2rem;
+  animation: slideIn 0.6s 0.1s ease both;
+}
+.hero-title span {
+  display: inline-block;
+  background: var(--yellow); padding: 0 0.15em;
+  transform: rotate(-1deg);
+}
+.hero-desc {
+  font-size: 0.88rem; line-height: 1.8; max-width: 40ch;
+  color: #555; margin-bottom: 2rem;
+  animation: slideIn 0.6s 0.2s ease both;
+}
+.hero-btns { display: flex; gap: 1rem; flex-wrap: wrap; animation: slideIn 0.6s 0.3s ease both; }
+.btn {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.78rem; font-weight: 700;
+  padding: 0.75rem 1.5rem;
+  border: var(--border); box-shadow: var(--shadow);
+  cursor: none; text-decoration: none;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  display: inline-block;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.btn:hover { transform: translate(-3px,-3px); box-shadow: var(--shadow-lg); }
+.btn-primary { background: var(--orange); color: #fff; }
+.btn-secondary { background: var(--card); color: var(--ink); }
+
+/* HERO VISUAL */
+.hero-visual { display: flex; align-items: center; justify-content: center; animation: floatIn 0.8s 0.2s ease both; }
+.avatar-wrap { position: relative; width: 340px; height: 340px; }
+.avatar-bg {
+  position: absolute; inset: 0; background: var(--blue);
+  border: var(--border);
+  border-radius: 40% 60% 55% 45% / 50% 45% 55% 50%;
+  animation: morphBlob 7s ease-in-out infinite;
+}
+.avatar-emoji {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 6rem; animation: bobble 3s ease-in-out infinite; z-index: 1;
+}
+.float-badge {
+  position: absolute; background: var(--card); border: var(--border);
+  box-shadow: var(--shadow); padding: 0.4rem 0.8rem;
+  font-size: 0.7rem; font-weight: 700; border-radius: 8px;
+  white-space: nowrap; animation: badgePop 0.5s ease both;
+}
+.fb-1 { top: 8%; left: -18%; background: var(--yellow); animation-delay: 0.5s; }
+.fb-2 { bottom: 22%; right: -15%; background: var(--pink); color: #fff; animation-delay: 0.7s; }
+.fb-3 { bottom: 4%; left: -2%; background: var(--green); animation-delay: 0.9s; }
+
+/* TICKER */
+.ticker {
+  overflow: hidden; border-top: var(--border); border-bottom: var(--border);
+  background: var(--ink); color: var(--yellow);
+  padding: 0.75rem 0; white-space: nowrap;
+}
+.ticker-inner {
+  display: inline-flex; gap: 2rem;
+  animation: ticker 20s linear infinite;
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.92rem;
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+.star { color: var(--orange); }
+
+/* ===== SHOP SECTION ===== */
+.shop-section { padding: 4rem 2.5rem 5rem; }
+.section-label {
+  font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--orange); margin-bottom: 0.4rem; font-weight: 700;
+}
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+  font-weight: 800; margin-bottom: 2rem; line-height: 1.1;
+}
+
+/* FILTERS */
+.filters { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 2rem; }
+.filter-btn {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+  padding: 0.35rem 0.9rem;
+  border: var(--border); background: var(--card); color: var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  cursor: none; transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.filter-btn:hover { transform: translate(-2px,-2px); box-shadow: var(--shadow); }
+.filter-btn.active { background: var(--ink); color: var(--yellow); }
+
+/* PRODUCT GRID */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 1.4rem;
+}
+.product-card {
+  background: var(--card); border: var(--border);
+  box-shadow: var(--shadow);
+  transition: transform 0.15s, box-shadow 0.15s;
+  cursor: none; position: relative; overflow: hidden;
+}
+.product-card:hover { transform: translate(-4px,-4px); box-shadow: var(--shadow-lg); }
+.product-thumb {
+  height: 150px; display: flex; align-items: center; justify-content: center;
+  font-size: 4rem; position: relative;
+  border-bottom: var(--border);
+}
+.type-tag {
+  position: absolute; top: 10px; left: 10px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
+  padding: 0.15rem 0.55rem; border: var(--border);
+}
+.tag-excel { background: var(--green); color: var(--ink); }
+.tag-python { background: var(--blue); color: #fff; }
+.hot-tag {
+  position: absolute; top: 10px; right: 10px;
+  background: var(--red); color: #fff;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem; font-weight: 700;
+  padding: 0.15rem 0.55rem; border: var(--border);
+}
+.product-body { padding: 1.1rem; }
+.product-cat {
+  font-size: 0.65rem; font-weight: 700; color: var(--orange);
+  text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.35rem;
+}
+.product-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; line-height: 1.3;
+}
+.product-desc { font-size: 0.75rem; line-height: 1.7; color: #666; margin-bottom: 1rem; }
+.product-footer { display: flex; align-items: center; justify-content: space-between; }
+.product-price {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.1rem; font-weight: 800; color: var(--ink);
+}
+.product-price small { font-size: 0.6rem; font-weight: 400; color: #888; }
+.add-btn {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+  padding: 0.4rem 0.9rem;
+  background: var(--orange); color: #fff;
+  border: var(--border); box-shadow: 3px 3px 0 var(--ink);
+  cursor: none; transition: transform 0.15s, box-shadow 0.15s;
+}
+.add-btn:hover { transform: translate(-2px,-2px); box-shadow: var(--shadow); }
+
+.empty-state {
+  grid-column: 1/-1; text-align: center; padding: 4rem;
+  border: var(--border); background: var(--card); box-shadow: var(--shadow);
+}
+.empty-state .ei { font-size: 3rem; margin-bottom: 1rem; }
+.empty-state p { font-size: 0.82rem; color: #888; }
+
+/* ===== CART PANEL ===== */
+.cart-overlay {
+  display: none; position: fixed; inset: 0; z-index: 300;
+  background: rgba(26,18,8,0.5);
+}
+.cart-overlay.open { display: flex; justify-content: flex-end; }
+.cart-panel {
+  width: 400px; max-width: 100vw; height: 100%;
+  background: var(--bg); border-left: var(--border);
+  display: flex; flex-direction: column;
+  animation: slideLeft 0.25s ease;
+}
+.cart-head {
+  padding: 1.3rem 1.5rem; border-bottom: var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.cart-head h3 { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 800; }
+.close-x {
+  background: none; border: none; font-size: 1.5rem;
+  cursor: none; color: var(--ink); line-height: 1;
+  font-family: 'Syne', sans-serif; font-weight: 800;
+}
+.cart-body { flex: 1; overflow-y: auto; padding: 1rem 1.5rem; }
+.cart-item {
+  display: flex; gap: 0.9rem; align-items: flex-start;
+  padding: 0.9rem 0; border-bottom: 1.5px dashed #ccc;
+}
+.ci-icon { font-size: 2rem; flex-shrink: 0; }
+.ci-info { flex: 1; }
+.ci-name { font-size: 0.82rem; font-weight: 700; margin-bottom: 0.2rem; line-height: 1.3; }
+.ci-price { font-family: 'Syne', sans-serif; font-size: 0.9rem; font-weight: 800; color: var(--orange); }
+.ci-remove {
+  background: none; border: none; color: #bbb; cursor: none;
+  font-size: 1rem; transition: color 0.2s; padding: 0 0.2rem;
+}
+.ci-remove:hover { color: var(--red); }
+.cart-empty-msg { text-align: center; padding: 3rem 1rem; color: #aaa; font-size: 0.82rem; }
+.cart-foot {
+  padding: 1.3rem 1.5rem; border-top: var(--border);
+  background: var(--card);
+}
+.cart-total-row {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 1rem;
+}
+.ct-label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: #888; }
+.ct-price { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800; }
+.checkout-btn {
+  width: 100%; padding: 0.9rem;
+  font-family: 'Space Mono', monospace; font-size: 0.82rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  background: var(--ink); color: var(--yellow);
+  border: var(--border); box-shadow: var(--shadow); cursor: none;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.checkout-btn:hover { transform: translate(-3px,-3px); box-shadow: var(--shadow-lg); }
+
+/* ===== PAYMENT MODAL ===== */
+.modal-wrap {
+  display: none; position: fixed; inset: 0; z-index: 400;
+  background: rgba(26,18,8,0.6);
+  align-items: center; justify-content: center;
+}
+.modal-wrap.open { display: flex; }
+.modal {
+  background: var(--bg); border: var(--border); box-shadow: var(--shadow-lg);
+  width: 500px; max-width: 95vw; max-height: 90vh; overflow-y: auto;
+  animation: popIn 0.25s ease;
+}
+.modal-head {
+  padding: 1.3rem 1.5rem; border-bottom: var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.modal-head h3 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1rem; }
+.modal-body { padding: 1.5rem; }
+
+/* ORDER SUMMARY */
+.order-box {
+  background: var(--card); border: var(--border);
+  box-shadow: 3px 3px 0 var(--ink); padding: 1rem; margin-bottom: 1.5rem;
+}
+.order-box-title {
+  font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--orange); margin-bottom: 0.7rem;
+}
+.order-line { display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 0.35rem; }
+.order-total { 
+  display: flex; justify-content: space-between;
+  border-top: 1.5px dashed #ccc; padding-top: 0.6rem; margin-top: 0.4rem;
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1rem;
+}
+
+/* PAYMENT METHODS */
+.pm-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.7rem; }
+.pm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; margin-bottom: 1.4rem; }
+.pm-card {
+  border: var(--border); background: var(--card); box-shadow: 3px 3px 0 var(--ink);
+  padding: 0.9rem; text-align: center; cursor: none;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.pm-card:hover { transform: translate(-2px,-2px); box-shadow: var(--shadow); }
+.pm-card.selected { background: var(--yellow); }
+.pm-icon { font-size: 1.6rem; margin-bottom: 0.3rem; }
+.pm-name { font-family: 'Syne', sans-serif; font-size: 0.8rem; font-weight: 700; }
+.pm-sub { font-size: 0.62rem; color: #888; margin-top: 0.1rem; }
+
+/* FORM */
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+.form-group { margin-bottom: 0.9rem; }
+.form-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.35rem; display: block; color: #555; }
+.form-input {
+  width: 100%; padding: 0.65rem 0.9rem;
+  border: var(--border); background: var(--card);
+  font-family: 'Space Mono', monospace; font-size: 0.82rem; color: var(--ink);
+  outline: none; transition: box-shadow 0.15s;
+}
+.form-input:focus { box-shadow: 3px 3px 0 var(--orange); }
+.pay-btn {
+  width: 100%; padding: 1rem;
+  font-family: 'Space Mono', monospace; font-size: 0.85rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  background: var(--orange); color: #fff;
+  border: var(--border); box-shadow: var(--shadow); cursor: none;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.pay-btn:hover { transform: translate(-3px,-3px); box-shadow: var(--shadow-lg); }
+
+/* SUCCESS MODAL */
+.success-body { text-align: center; padding: 3rem 2rem; }
+.success-icon { font-size: 4rem; margin-bottom: 1rem; }
+.success-body h3 { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem; }
+.success-body p { font-size: 0.82rem; color: #666; line-height: 1.7; margin-bottom: 1.5rem; }
+
+/* ===== ADMIN PAGE ===== */
+.admin-wrap { padding: 5rem 2.5rem 4rem; max-width: 850px; }
+.admin-head { margin-bottom: 2.5rem; }
+.admin-head h2 { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; margin-bottom: 0.3rem; }
+.admin-head p { font-size: 0.8rem; color: #888; }
+
+.admin-card {
+  background: var(--card); border: var(--border);
+  box-shadow: var(--shadow); padding: 2rem; margin-bottom: 1.5rem;
+}
+.admin-card-title {
+  font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 800;
+  margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;
+}
+.form-group textarea {
+  width: 100%; padding: 0.65rem 0.9rem;
+  border: var(--border); background: var(--bg);
+  font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--ink);
+  resize: vertical; min-height: 80px; outline: none;
+}
+.form-group select {
+  width: 100%; padding: 0.65rem 0.9rem;
+  border: var(--border); background: var(--bg);
+  font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--ink);
+  cursor: none; outline: none;
+}
+.upload-zone {
+  border: 2.5px dashed var(--ink); padding: 2rem;
+  text-align: center; cursor: none; position: relative;
+  transition: background 0.2s;
+}
+.upload-zone:hover, .upload-zone.dragover { background: #fffde8; }
+.upload-zone input[type=file] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+}
+.upload-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+.upload-text { font-size: 0.82rem; font-weight: 700; margin-bottom: 0.2rem; }
+.upload-sub { font-size: 0.7rem; color: #888; }
+.upload-name { font-size: 0.75rem; color: var(--green); margin-top: 0.5rem; font-weight: 700; }
+
+/* EMOJI PICKER */
+.emoji-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+.emoji-opt {
+  font-size: 1.4rem; padding: 0.3rem; cursor: none;
+  border: 2px solid transparent; border-radius: 6px; transition: all 0.15s;
+}
+.emoji-opt:hover, .emoji-opt.selected { border-color: var(--ink); background: var(--yellow); }
+
+.add-product-btn {
+  width: 100%; padding: 1rem;
+  font-family: 'Space Mono', monospace; font-size: 0.85rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  background: var(--green); color: var(--ink);
+  border: var(--border); box-shadow: var(--shadow); cursor: none;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.add-product-btn:hover { transform: translate(-3px,-3px); box-shadow: var(--shadow-lg); }
+
+/* ADMIN LIST */
+.admin-list { display: flex; flex-direction: column; gap: 0.8rem; }
+.admin-item {
+  display: flex; align-items: center; gap: 1rem;
+  background: var(--bg); border: var(--border);
+  box-shadow: 3px 3px 0 var(--ink); padding: 0.9rem 1.1rem;
+}
+.ai-icon { font-size: 1.8rem; flex-shrink: 0; }
+.ai-info { flex: 1; }
+.ai-name { font-size: 0.85rem; font-weight: 700; }
+.ai-meta { font-size: 0.68rem; color: #888; margin-top: 0.1rem; }
+.ai-price { font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 800; margin-right: 0.5rem; }
+.del-btn {
+  font-family: 'Space Mono', monospace; font-size: 0.65rem; font-weight: 700;
+  text-transform: uppercase; padding: 0.35rem 0.7rem;
+  background: var(--red); color: #fff;
+  border: var(--border); box-shadow: 2px 2px 0 var(--ink);
+  cursor: none; transition: transform 0.15s, box-shadow 0.15s;
+}
+.del-btn:hover { transform: translate(-2px,-2px); box-shadow: var(--shadow); }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 2rem; left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--ink); color: var(--yellow);
+  border: var(--border); box-shadow: var(--shadow);
+  padding: 0.7rem 1.4rem;
+  font-size: 0.8rem; font-weight: 700;
+  z-index: 600; transition: transform 0.3s ease;
+  white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.ok { background: var(--green); color: var(--ink); }
+.toast.err { background: var(--red); color: #fff; }
+
+/* ABOUT SECTION */
+.about-section {
+  background: var(--ink); color: var(--bg);
+  padding: 5rem 2.5rem;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
+}
+.about-section .section-label { color: var(--yellow); }
+.about-section .section-title { color: var(--bg); }
+.about-text { font-size: 0.85rem; line-height: 1.9; color: #bbb; }
+.about-text p + p { margin-top: 0.9rem; }
+.about-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.stat-card {
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+  padding: 1.3rem;
+}
+.stat-num { font-family: 'Syne', sans-serif; font-size: 2.2rem; font-weight: 800; color: var(--yellow); }
+.stat-label { font-size: 0.68rem; color: #888; margin-top: 0.15rem; }
+
+/* CONTACT SECTION */
+.contact-section { padding: 5rem 2.5rem; text-align: center; }
+.contact-desc { font-size: 0.85rem; color: #888; margin-bottom: 2rem; }
+.contact-links { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
+.contact-link {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.75rem 1.3rem; border: var(--border); box-shadow: var(--shadow);
+  background: var(--card); font-size: 0.78rem; font-weight: 700;
+  text-decoration: none; color: var(--ink); text-transform: uppercase; letter-spacing: 0.06em;
+  transition: transform 0.15s, box-shadow 0.15s; cursor: none;
+}
+.contact-link:hover { transform: translate(-3px,-3px); box-shadow: var(--shadow-lg); }
+.contact-link.hl { background: var(--orange); color: #fff; }
+
+/* FOOTER */
+footer {
+  border-top: var(--border); padding: 1.3rem 2.5rem;
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.7rem; color: #999;
+}
+
+/* REVEAL */
+.reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ANIMATIONS */
+@keyframes slideIn { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+@keyframes floatIn { from { opacity:0; transform:translateX(40px); } to { opacity:1; transform:translateX(0); } }
+@keyframes badgePop { from { opacity:0; transform:scale(0.5); } to { opacity:1; transform:scale(1); } }
+@keyframes morphBlob {
+  0%,100% { border-radius: 40% 60% 55% 45% / 50% 45% 55% 50%; }
+  33% { border-radius: 55% 45% 40% 60% / 45% 60% 40% 55%; }
+  66% { border-radius: 60% 40% 50% 50% / 55% 40% 60% 45%; }
+}
+@keyframes bobble { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-12px); } }
+@keyframes ticker { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+@keyframes slideLeft { from { transform:translateX(100%); } to { transform:translateX(0); } }
+@keyframes popIn { from { transform:scale(0.92); opacity:0; } to { transform:scale(1); opacity:1; } }
+
+@media (max-width: 768px) {
+  .hero { grid-template-columns: 1fr; }
+  .hero-visual { display: none; }
+  .about-section { grid-template-columns: 1fr; }
+  nav { padding: 1rem 1.2rem; }
+  .admin-wrap { padding: 5rem 1.2rem 3rem; }
+  .shop-section { padding: 3rem 1.2rem 4rem; }
+  .form-row { grid-template-columns: 1fr; }
+  .pm-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">🏗️ BuildTools</a>
+  <div class="nav-right">
+    <button class="nav-tab active" onclick="showPage('shop', this)">🛍️ Cửa hàng</button>
+    <button class="nav-tab" onclick="showPage('admin', this)">⚙️ Admin</button>
+    <button class="cart-tab" onclick="openCart()">
+      🛒 Giỏ hàng
+      <span class="cart-badge" id="cartBadge">0</span>
+    </button>
+  </div>
+</nav>
+
+<!-- ======== SHOP PAGE ======== -->
+<div class="page active" id="shopPage">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div>
+      <div class="hero-eyebrow">✦ Tool chuyên nghiệp · Ngành xây dựng</div>
+      <h1 class="hero-title">Công cụ số<br/>cho <span>Kỹ sư</span><br/>xây dựng</h1>
+      <p class="hero-desc">
+        Tối ưu tính toán, dự toán và quản lý dự án với các tool Excel & Python được thiết kế riêng cho ngành xây dựng Việt Nam.
+      </p>
+      <div class="hero-btns">
+        <a href="#shop" class="btn btn-primary">Xem sản phẩm →</a>
+        <a href="#contact" class="btn btn-secondary">Liên hệ ✉</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="avatar-wrap">
+        <div class="avatar-bg"></div>
+        <div class="avatar-emoji">🏗️</div>
+        <div class="float-badge fb-1">⚡ Tiết kiệm 80% thời gian</div>
+        <div class="float-badge fb-2">🎯 Chuẩn TCVN 2024</div>
+        <div class="float-badge fb-3">🇻🇳 Made in Vietnam</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TICKER -->
+  <div class="ticker">
+    <div class="ticker-inner">
+      <span>Dự Toán</span><span class="star">★</span>
+      <span>Kết Cấu BTCT</span><span class="star">★</span>
+      <span>Excel Automation</span><span class="star">★</span>
+      <span>Python Script</span><span class="star">★</span>
+      <span>Quản Lý Tiến Độ</span><span class="star">★</span>
+      <span>TCVN 5574:2018</span><span class="star">★</span>
+      <span>Thủy Lực</span><span class="star">★</span>
+      <span>Móng Cọc</span><span class="star">★</span>
+      <span>Dự Toán</span><span class="star">★</span>
+      <span>Kết Cấu BTCT</span><span class="star">★</span>
+      <span>Excel Automation</span><span class="star">★</span>
+      <span>Python Script</span><span class="star">★</span>
+      <span>Quản Lý Tiến Độ</span><span class="star">★</span>
+      <span>TCVN 5574:2018</span><span class="star">★</span>
+      <span>Thủy Lực</span><span class="star">★</span>
+      <span>Móng Cọc</span><span class="star">★</span>
+    </div>
+  </div>
+
+  <!-- PRODUCTS -->
+  <section class="shop-section" id="shop">
+    <div class="section-label">Sản phẩm nổi bật</div>
+    <h2 class="section-title">Tất cả Tool</h2>
+    <div class="filters" id="filtersBar">
+      <button class="filter-btn active" onclick="filterProducts('all',this)">Tất cả</button>
+      <button class="filter-btn" onclick="filterProducts('Excel',this)">📗 Excel</button>
+      <button class="filter-btn" onclick="filterProducts('Python',this)">🐍 Python</button>
+      <button class="filter-btn" onclick="filterProducts('Dự toán',this)">💰 Dự toán</button>
+      <button class="filter-btn" onclick="filterProducts('Kết cấu',this)">🏗️ Kết cấu</button>
+      <button class="filter-btn" onclick="filterProducts('Quản lý',this)">📋 Quản lý</button>
+    </div>
+    <div class="products-grid" id="productsGrid"></div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="about-section" id="about">
+    <div>
+      <div class="section-label">Về chúng tôi</div>
+      <h2 class="section-title">Tại sao chọn<br/>BuildTools?</h2>
+      <div class="about-text">
+        <p>Chúng tôi là kỹ sư xây dựng — hiểu rõ những bài toán thực tế mà các bạn đối mặt hàng ngày.</p>
+        <p>Mỗi tool được xây dựng từ kinh nghiệm thực chiến, kiểm tra kỹ lưỡng theo tiêu chuẩn Việt Nam, giúp bạn tiết kiệm hàng giờ tính toán thủ công.</p>
+        <p>Hỗ trợ kỹ thuật trực tiếp qua Zalo — không chatbot, không hàng đợi. 🇻🇳</p>
+      </div>
+    </div>
+    <div class="about-stats reveal">
+      <div class="stat-card"><div class="stat-num">500+</div><div class="stat-label">Kỹ sư tin dùng</div></div>
+      <div class="stat-card"><div class="stat-num" id="statProducts">0</div><div class="stat-label">Tool có sẵn</div></div>
+      <div class="stat-card"><div class="stat-num">4.9★</div><div class="stat-label">Đánh giá trung bình</div></div>
+      <div class="stat-card"><div class="stat-num">24h</div><div class="stat-label">Hỗ trợ sau mua</div></div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="contact-section" id="contact">
+    <div class="section-label">Liên hệ</div>
+    <h2 class="section-title">Cần tư vấn hoặc<br/>đặt tool theo yêu cầu? 🔧</h2>
+    <p class="contact-desc">Mình có thể làm tool riêng theo bài toán cụ thể của bạn.</p>
+    <div class="contact-links">
+      <a href="mailto:manhtuan@email.com" class="contact-link hl">✉ Email</a>
+      <a href="#" class="contact-link">💬 Zalo</a>
+      <a href="#" class="contact-link">🐙 GitHub</a>
+      <a href="#" class="contact-link">📄 Báo giá</a>
+    </div>
+  </section>
+
+  <footer>
+    <span>© 2026 BuildTools · Manh Tuan</span>
+    <span>Made with ☕ & 🏗️</span>
+  </footer>
+</div>
+
+<!-- ======== ADMIN PAGE ======== -->
+<div class="page" id="adminPage">
+  <div class="admin-wrap">
+    <div class="admin-head">
+      <h2>⚙️ Quản lý sản phẩm</h2>
+      <p>Thêm tool mới và quản lý danh sách sản phẩm của bạn</p>
+    </div>
+
+    <!-- ADD FORM -->
+    <div class="admin-card">
+      <div class="admin-card-title">➕ Thêm sản phẩm mới</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tên sản phẩm *</label>
+          <input type="text" class="form-input" id="fName" placeholder="VD: Tool tính móng cọc"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Giá (VNĐ) *</label>
+          <input type="number" class="form-input" id="fPrice" placeholder="VD: 299000"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Loại file</label>
+          <select class="form-input" id="fType">
+            <option value="Excel">📗 Excel (.xlsx)</option>
+            <option value="Python">🐍 Python (.py / .zip)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Danh mục</label>
+          <select class="form-input" id="fCat">
+            <option value="Dự toán">💰 Dự toán</option>
+            <option value="Kết cấu">🏗️ Kết cấu</option>
+            <option value="Quản lý">📋 Quản lý</option>
+            <option value="Thủy lực">💧 Thủy lực</option>
+            <option value="Khác">📦 Khác</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mô tả ngắn *</label>
+        <textarea id="fDesc" placeholder="Tính năng chính, đối tượng sử dụng, tiêu chuẩn áp dụng..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Icon đại diện</label>
+        <div class="emoji-row" id="emojiRow"></div>
+        <input type="hidden" id="fEmoji" value="📊"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Upload file sản phẩm</label>
+        <div class="upload-zone" id="uploadZone">
+          <input type="file" id="fileInput" accept=".xlsx,.xls,.py,.zip,.rar"/>
+          <div class="upload-icon">📂</div>
+          <div class="upload-text">Kéo thả file vào đây hoặc click để chọn</div>
+          <div class="upload-sub">Hỗ trợ: .xlsx, .xls, .py, .zip, .rar (tối đa 50MB)</div>
+          <div class="upload-name" id="uploadName"></div>
+        </div>
+      </div>
+      <button class="add-product-btn" onclick="addProduct()">✅ Thêm sản phẩm vào cửa hàng</button>
+    </div>
+
+    <!-- LIST -->
+    <div class="admin-card">
+      <div class="admin-card-title">📦 Danh sách sản phẩm (<span id="adminCount">0</span>)</div>
+      <div class="admin-list" id="adminList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CART PANEL -->
+<div class="cart-overlay" id="cartOverlay" onclick="handleOverlay(event)">
+  <div class="cart-panel">
+    <div class="cart-head">
+      <h3>🛒 Giỏ hàng</h3>
+      <button class="close-x" onclick="closeCart()">×</button>
+    </div>
+    <div class="cart-body" id="cartBody"></div>
+    <div class="cart-foot">
+      <div class="cart-total-row">
+        <span class="ct-label">Tổng cộng</span>
+        <span class="ct-price" id="cartTotal">0 ₫</span>
+      </div>
+      <button class="checkout-btn" onclick="openPayment()">💳 Thanh toán ngay →</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAYMENT MODAL -->
+<div class="modal-wrap" id="payModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>💳 Thanh toán</h3>
+      <button class="close-x" onclick="closePayment()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="order-box" id="orderBox"></div>
+      <div class="pm-label">Chọn phương thức thanh toán</div>
+      <div class="pm-grid">
+        <div class="pm-card selected" onclick="selectPM('momo',this)">
+          <div class="pm-icon">💜</div>
+          <div class="pm-name">MoMo</div>
+          <div class="pm-sub">Ví điện tử</div>
+        </div>
+        <div class="pm-card" onclick="selectPM('vnpay',this)">
+          <div class="pm-icon">🔵</div>
+          <div class="pm-name">VNPay</div>
+          <div class="pm-sub">ATM / QR Code</div>
+        </div>
+        <div class="pm-card" onclick="selectPM('bank',this)">
+          <div class="pm-icon">🏦</div>
+          <div class="pm-name">Chuyển khoản</div>
+          <div class="pm-sub">Ngân hàng</div>
+        </div>
+        <div class="pm-card" onclick="selectPM('zalo',this)">
+          <div class="pm-icon">💬</div>
+          <div class="pm-name">Zalo</div>
+          <div class="pm-sub">Thỏa thuận trực tiếp</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Họ và tên</label>
+          <input type="text" class="form-input" id="pName" placeholder="Nguyễn Văn A"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Số điện thoại</label>
+          <input type="tel" class="form-input" id="pPhone" placeholder="0901 234 567"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email nhận file *</label>
+        <input type="email" class="form-input" id="pEmail" placeholder="email@example.com"/>
+      </div>
+      <button class="pay-btn" onclick="processPayment()">🔐 Xác nhận & Thanh toán</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS MODAL -->
+<div class="modal-wrap" id="successModal">
+  <div class="modal">
+    <div class="success-body">
+      <div class="success-icon">🎉</div>
+      <h3>Đặt hàng thành công!</h3>
+      <p>Cảm ơn bạn đã tin tưởng BuildTools!<br/>File sẽ được gửi vào email trong vòng <strong>15 phút</strong> sau khi xác nhận thanh toán.</p>
+      <button class="btn btn-primary" onclick="closeSuccess()">Tiếp tục mua sắm →</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== DATA =====
+let products = JSON.parse(localStorage.getItem('bt_v2') || 'null');
+if (!products) {
+  products = [
+    { id:1, name:'Tool Dự Toán Xây Dựng Pro', price:299000, type:'Excel', cat:'Dự toán', desc:'Tự động tính khối lượng, đơn giá và tổng dự toán theo định mức Việt Nam 2024. Hỗ trợ xuất báo cáo.', emoji:'📊', hot:true },
+    { id:2, name:'Tính Toán Kết Cấu BTCT', price:399000, type:'Excel', cat:'Kết cấu', desc:'Tính thép dầm, cột, sàn theo TCVN 5574:2018. Biểu đồ nội lực trực quan, kiểm tra tự động.', emoji:'🏗️', hot:false },
+    { id:3, name:'Quản Lý Tiến Độ Gantt', price:199000, type:'Excel', cat:'Quản lý', desc:'Biểu đồ Gantt tự động, theo dõi % hoàn thành, cảnh báo tiến độ. Phù hợp dự án 50–500 hạng mục.', emoji:'📅', hot:false },
+    { id:4, name:'Python Auto Report', price:499000, type:'Python', cat:'Quản lý', desc:'Script tự động tổng hợp dữ liệu từ nhiều file Excel, xuất báo cáo Word/PDF chuyên nghiệp.', emoji:'🤖', hot:true },
+  ];
+  save();
+}
+
+let cart = [];
+let selEmoji = '📊';
+let selPM = 'momo';
+let curFilter = 'all';
+
+function save() { localStorage.setItem('bt_v2', JSON.stringify(products)); }
+
+// ===== EMOJI =====
+const EMOJIS = ['📊','📋','🏗️','🔧','📐','📏','🧮','🏢','💰','📅','🔩','⚙️','🤖','📂','🔢','💧','📈','🗂️'];
+function initEmoji() {
+  document.getElementById('emojiRow').innerHTML = EMOJIS.map(e =>
+    `<span class="emoji-opt${e===selEmoji?' selected':''}" onclick="pickEmoji('${e}',this)">${e}</span>`
+  ).join('');
+}
+function pickEmoji(e, el) {
+  selEmoji = e;
+  document.getElementById('fEmoji').value = e;
+  document.querySelectorAll('.emoji-opt').forEach(x => x.classList.remove('selected'));
+  el.classList.add('selected');
+}
+initEmoji();
+
+// ===== UPLOAD =====
+const fileInp = document.getElementById('fileInput');
+fileInp.addEventListener('change', () => {
+  if (fileInp.files[0]) document.getElementById('uploadName').textContent = '✅ ' + fileInp.files[0].name;
+});
+const uz = document.getElementById('uploadZone');
+uz.addEventListener('dragover', e => { e.preventDefault(); uz.classList.add('dragover'); });
+uz.addEventListener('dragleave', () => uz.classList.remove('dragover'));
+uz.addEventListener('drop', e => {
+  e.preventDefault(); uz.classList.remove('dragover');
+  const f = e.dataTransfer.files[0];
+  if (f) { fileInp.files = e.dataTransfer.files; document.getElementById('uploadName').textContent = '✅ ' + f.name; }
+});
+
+// ===== RENDER PRODUCTS =====
+function renderProducts(filter) {
+  if (filter !== undefined) curFilter = filter;
+  const grid = document.getElementById('productsGrid');
+  let list = curFilter === 'all' ? products : products.filter(p => p.type === curFilter || p.cat === curFilter);
+  document.getElementById('statProducts').textContent = products.length;
+
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty-state"><div class="ei">📦</div><p>Chưa có sản phẩm.<br/>Hãy vào Admin để thêm tool!</p></div>`;
+    return;
+  }
+
+  const thumbColors = { Excel: '#e8f5e9', Python: '#e3f2fd' };
+  grid.innerHTML = list.map(p => `
+    <div class="product-card reveal">
+      <div class="product-thumb" style="background:${thumbColors[p.type]||'#f0f4ff'}">
+        <span class="type-tag ${p.type==='Excel'?'tag-excel':'tag-python'}">${p.type}</span>
+        ${p.hot ? '<span class="hot-tag">🔥 Hot</span>' : ''}
+        <span style="position:relative;z-index:1">${p.emoji}</span>
+      </div>
+      <div class="product-body">
+        <div class="product-cat">${p.cat}</div>
+        <div class="product-name">${p.name}</div>
+        <div class="product-desc">${p.desc}</div>
+        <div class="product-footer">
+          <div class="product-price">${fmt(p.price)}<small> ₫</small></div>
+          <button class="add-btn" onclick="addToCart(event,${p.id})">+ Giỏ hàng</button>
+        </div>
+      </div>
+    </div>`).join('');
+
+  // re-observe reveals
+  document.querySelectorAll('.reveal:not(.visible)').forEach(el => obs.observe(el));
+  updateCursorTargets();
+}
+
+function filterProducts(f, el) {
+  curFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderProducts(f);
+}
+
+// ===== CART =====
+function addToCart(e, id) {
+  e.stopPropagation();
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+  if (cart.find(x => x.id === id)) { toast('⚠️ Sản phẩm đã có trong giỏ!', 'err'); return; }
+  cart.push({...p});
+  updateCartBadge();
+  toast(`✅ Đã thêm: ${p.name}`, 'ok');
+}
+function removeFromCart(id) { cart = cart.filter(x => x.id !== id); updateCartBadge(); renderCartBody(); }
+function updateCartBadge() { document.getElementById('cartBadge').textContent = cart.length; }
+function renderCartBody() {
+  const el = document.getElementById('cartBody');
+  if (!cart.length) { el.innerHTML = '<div class="cart-empty-msg">🛒<br/><br/>Giỏ hàng đang trống</div>'; document.getElementById('cartTotal').textContent = '0 ₫'; return; }
+  el.innerHTML = cart.map(p => `
+    <div class="cart-item">
+      <div class="ci-icon">${p.emoji}</div>
+      <div class="ci-info">
+        <div class="ci-name">${p.name}</div>
+        <div class="ci-price">${fmt(p.price)} ₫</div>
+      </div>
+      <button class="ci-remove" onclick="removeFromCart(${p.id})">✕</button>
+    </div>`).join('');
+  document.getElementById('cartTotal').textContent = fmt(cart.reduce((s,p)=>s+p.price,0)) + ' ₫';
+}
+function openCart() { renderCartBody(); document.getElementById('cartOverlay').classList.add('open'); }
+function closeCart() { document.getElementById('cartOverlay').classList.remove('open'); }
+function handleOverlay(e) { if (e.target === document.getElementById('cartOverlay')) closeCart(); }
+
+// ===== PAYMENT =====
+function openPayment() {
+  if (!cart.length) { toast('⚠️ Giỏ hàng đang trống!', 'err'); return; }
+  closeCart();
+  const total = cart.reduce((s,p)=>s+p.price,0);
+  document.getElementById('orderBox').innerHTML = `
+    <div class="order-box-title">Đơn hàng của bạn</div>
+    ${cart.map(p=>`<div class="order-line"><span>${p.emoji} ${p.name}</span><span>${fmt(p.price)} ₫</span></div>`).join('')}
+    <div class="order-total"><span>Tổng cộng</span><span>${fmt(total)} ₫</span></div>`;
+  document.getElementById('payModal').classList.add('open');
+}
+function closePayment() { document.getElementById('payModal').classList.remove('open'); }
+function selectPM(pm, el) {
+  selPM = pm;
+  document.querySelectorAll('.pm-card').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function processPayment() {
+  const name = document.getElementById('pName').value.trim();
+  const email = document.getElementById('pEmail').value.trim();
+  const phone = document.getElementById('pPhone').value.trim();
+  if (!name || !email || !phone) { toast('⚠️ Vui lòng điền đầy đủ thông tin!', 'err'); return; }
+  if (!email.includes('@')) { toast('⚠️ Email không hợp lệ!', 'err'); return; }
+  closePayment();
+  // ⬇️ Khi deploy thật: gọi API MoMo/VNPay ở đây
+  setTimeout(() => { document.getElementById('successModal').classList.add('open'); cart = []; updateCartBadge(); }, 400);
+}
+function closeSuccess() { document.getElementById('successModal').classList.remove('open'); }
+
+// ===== ADMIN =====
+function addProduct() {
+  const name = document.getElementById('fName').value.trim();
+  const price = parseInt(document.getElementById('fPrice').value);
+  const type = document.getElementById('fType').value;
+  const cat = document.getElementById('fCat').value;
+  const desc = document.getElementById('fDesc').value.trim();
+  const emoji = document.getElementById('fEmoji').value;
+  if (!name || !price || !desc) { toast('⚠️ Điền đầy đủ thông tin!', 'err'); return; }
+  if (price < 1000) { toast('⚠️ Giá phải lớn hơn 1.000 ₫!', 'err'); return; }
+  products.unshift({ id: Date.now(), name, price, type, cat, desc, emoji, hot: false });
+  save();
+  renderProducts();
+  renderAdminList();
+  document.getElementById('fName').value = '';
+  document.getElementById('fPrice').value = '';
+  document.getElementById('fDesc').value = '';
+  document.getElementById('uploadName').textContent = '';
+  fileInp.value = '';
+  toast('✅ Đã thêm sản phẩm thành công!', 'ok');
+}
+function deleteProduct(id) {
+  if (!confirm('Xóa sản phẩm này?')) return;
+  products = products.filter(p => p.id !== id);
+  save(); renderProducts(); renderAdminList();
+  toast('🗑️ Đã xóa sản phẩm', 'err');
+}
+function renderAdminList() {
+  document.getElementById('adminCount').textContent = products.length;
+  const el = document.getElementById('adminList');
+  if (!products.length) { el.innerHTML = '<div style="color:#aaa;font-size:0.8rem;text-align:center;padding:2rem">Chưa có sản phẩm nào</div>'; return; }
+  el.innerHTML = products.map(p => `
+    <div class="admin-item">
+      <div class="ai-icon">${p.emoji}</div>
+      <div class="ai-info">
+        <div class="ai-name">${p.name}</div>
+        <div class="ai-meta">${p.type} · ${p.cat}</div>
+      </div>
+      <span class="ai-price">${fmt(p.price)} ₫</span>
+      <button class="del-btn" onclick="deleteProduct(${p.id})">🗑️ Xóa</button>
+    </div>`).join('');
+}
+
+// ===== PAGES =====
+function showPage(page, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById(page + 'Page').classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (page === 'admin') renderAdminList();
+}
+
+// ===== UTILS =====
+function fmt(n) { return n.toLocaleString('vi-VN'); }
+let toastTimer;
+function toast(msg, type='ok') {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = `toast ${type} show`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// ===== CURSOR =====
+const cur = document.getElementById('cursor');
+document.addEventListener('mousemove', e => { cur.style.left = e.clientX-10+'px'; cur.style.top = e.clientY-10+'px'; });
+function updateCursorTargets() {
+  document.querySelectorAll('a,button,.product-card,.pm-card,.emoji-opt,.filter-btn,.nav-tab,.cart-tab,.add-btn,.del-btn').forEach(el => {
+    el.addEventListener('mouseenter', () => cur.classList.add('big'));
+    el.addEventListener('mouseleave', () => cur.classList.remove('big'));
+  });
+}
+updateCursorTargets();
+
+// ===== SCROLL REVEAL =====
+const obs = new IntersectionObserver(entries => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) setTimeout(() => entry.target.classList.add('visible'), i * 80);
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+// ===== INIT =====
+renderProducts();
+</script>
+</body>
+</html>
